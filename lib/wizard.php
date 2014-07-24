@@ -333,7 +333,7 @@ class Wizard
             }
 
             // Меняем те поля, которые надо экранировать
-            $arFieldsCopy = array_merge_recursive_distinct($arFieldsCopy, $arNewFields);
+            $arFieldsCopy = self::_array_merge_recursive_distinct($arFieldsCopy, $arNewFields);
 
             // Удаляем артефактные поля
             unset($arFieldsCopy['PROPERTIES']);
@@ -362,29 +362,6 @@ class Wizard
 
     /////////////////////////////////  Управление сущностями  //////////////////////////////////
 
-    /**
-     *
-     * @param $site_id
-     * @return bool
-     */
-    static function connectCommonIBlocksToSite($site_id) // @todo: Нужно сделать не common iblocks, а любой инфоблок
-    {
-        global $DB;
-        $err_mess = '';
-        $res = CIBlock::GetList(
-            Array(),
-            Array('TYPE' => 'common', 'CHECK_PERMISSIONS' => 'N'),
-            true
-        );
-        while ($ar_res = $res->GetNext()) {
-            // Проверяем, может быть уже есть привязка к сайту
-            $resDb = $DB->Query($str = "SELECT * FROM `b_iblock_site` WHERE `IBLOCK_ID`={$ar_res['ID']} && `SITE_ID`='$site_id'", false, $err_mess . __LINE__);
-            if (!$resDb->Fetch())
-                $DB->Query($str = "INSERT INTO `b_iblock_site` (`IBLOCK_ID`,`SITE_ID`) VALUES ('{$ar_res['ID']}','$site_id')", false, $err_mess . __LINE__);
-        }
-        return true;
-    }
-
 
     static function massUpdateSection($arSearch, $arFields)
     {
@@ -405,4 +382,36 @@ class Wizard
         return true;
     }
 
+
+    /**
+     * @param $array1
+     * @param $array2
+     * @return array
+     * Рекурсивно сливает массивы (в отличие от array_merge) и не создаёт дублей
+     * Взято из комментариев со страницы http://php.net/manual/en/function.array-merge-recursive.php
+     *
+     * Больше подходит для Битрикса, нежели стандартный array_merge_recursive.
+     * Применяется при мердже массивов, описывающих элемент, в том виде, как это хотят CIBlockElement:Add() и подобных
+     */
+    static function _array_merge_recursive_distinct ( $array1, $array2 )
+    {
+        if (! is_array($array1) &&   is_array($array2)) return $array2;
+        if (  is_array($array1) && ! is_array($array2)) return $array1;
+        if (! is_array($array1) && ! is_array($array2)) return array();
+
+        $merged = $array1;
+        foreach ( $array2 as $key => &$value )
+        {
+            if ( is_array ( $value ) && isset ( $merged [$key] ) && is_array ( $merged [$key] ) )
+            {
+                $merged [$key] = self::_array_merge_recursive_distinct ( $merged [$key], $value );
+            }
+            else
+            {
+                $merged [$key] = $value;
+            }
+        }
+
+        return $merged;
+    }
 }
