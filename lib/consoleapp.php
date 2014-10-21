@@ -2,7 +2,7 @@
 /**
  * Общий класс для упрощения работы с пользователем через консоль
  */
-namespace Bitrix\Maycat\Consolejedi;
+namespace Maycat\Consolejedi;
 
 class Consoleapp
 {
