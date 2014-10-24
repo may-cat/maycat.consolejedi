@@ -1,8 +1,9 @@
 <?
 namespace \Maycat\Consolejedi;
 
+\CModule::IncludeModule('iblock');
 /**
- * Class CWizard
+ * Class Wizard
  * Класс, облегчающий написание "визардов", вносящих изменения в базу данных.
  *
  * Три Закона Волшебнотехники
@@ -28,7 +29,7 @@ class Wizard
      * @param $arSearchTarget array массив, с помощью которого метод будет искать результирующий инфоблок - а то вдруг как он уже существует?
      * @param $arElementFix array описания полей, которые нужно подменить в существующем инфоблоке (напр.: скопированному инфоблоку нужно сразу вставить другое название)
      * @return bool|int false или id созданного инфоблока
-     * @throws Exception в случае ошибки
+     * @throws \Exception в случае ошибки
      */
     static function сopyIBlockIfNotExists($arSearchSource, $arSearchTarget, $arElementFix)
     {
@@ -36,7 +37,7 @@ class Wizard
         $resSourceIB = \CIBlock::GetList(array(), $arSearchSource);
         $arSourceFields = $resSourceIB->GetNext();
         if (!$arSourceFields['ID'])
-            throw new Exception("Не нашёл инфоблока для копирования [{$arSearchSource['ID']}");
+            throw new \Exception("Не нашёл инфоблока для копирования [{$arSearchSource['ID']}");
         // Находим новый инфоблок, если есть
         $resTargetIB = \CIBlock::GetList(array(), $arSearchTarget);
         $arTargetFields = $resTargetIB->GetNext();
@@ -89,7 +90,7 @@ class Wizard
     /**
      * @param $arFields array описание создаваемой секции. Метод будет пытаться найти уже существующую секцию по id инфоблока и коду
      * @return null|int пустота или номер созданной секции
-     * @throws Exception
+     * @throws \Exception
      */
     static function сreateSectionIfNotExists($arFields)
     {
@@ -107,6 +108,14 @@ class Wizard
         }
         return $arSection["ID"];
     }
+
+
+
+
+
+
+
+
 
     /**
      * Регистрирует в базе Битрикса сайт исходя из пришедших настроек
@@ -151,7 +160,7 @@ class Wizard
      * @param $arFields
      * @param array $arrFilter
      * @return bool|int
-     * @throws Exception
+     * @throws \Exception
      */
     static function createIBlockElementIfNotExists($arFields, $arrFilter = array())
     {
@@ -168,7 +177,7 @@ class Wizard
         if (!$id = $ob['ID']) {
             $el = new \CIBlockElement;
             if (!$id = $el->Add($arFields))
-                throw new Exception("Не смог создать элемент инфоблока с главным редактором:\n" . $el->LAST_ERROR . "\n");
+                throw new \Exception("Не смог создать элемент инфоблока с главным редактором:\n" . $el->LAST_ERROR . "\n");
         }
         return $id;
     }
@@ -194,7 +203,7 @@ class Wizard
      * @param $iblock_id
      * @param $arFields
      * @return bool|int
-     * @throws Exception
+     * @throws \Exception
      */
     static function createPropertyIfNotExists($iblock_id, $arFields)
     {
@@ -220,7 +229,7 @@ class Wizard
 
             $ibp = new \CIBlockProperty;
             if (!$PropID = $ibp->Add($arFields)) {
-                throw new Exception("Что-то пошло не так при создании свойтсва: " . $ibp->LAST_ERROR);
+                throw new \Exception("Что-то пошло не так при создании свойтсва: " . $ibp->LAST_ERROR);
             }
             return $PropID;
         }
@@ -362,7 +371,7 @@ class Wizard
         $res = \CIBlockSection::GetList(Array('SORT' => 'ASC'), $arSearch);
         $arSection = $res->GetNext();
         if (!$arSection['ID'])
-            throw new Exception("Не найдена секция");
+            throw new \Exception("Не найдена секция");
 
         $arFields['IBLOCK_ID'] = $arSearch['IBLOCK_ID'];
         $objSection = new \CIBlockSection;
