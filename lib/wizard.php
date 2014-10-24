@@ -1,5 +1,5 @@
 <?
-namespace Bitrix\Maycat\Consolejedi;
+namespace \Maycat\Consolejedi;
 
 /**
  * Class CWizard
@@ -33,12 +33,12 @@ class Wizard
     static function сopyIBlockIfNotExists($arSearchSource, $arSearchTarget, $arElementFix)
     {
         // Находим старый инфоблок
-        $resSourceIB = CIBlock::GetList(array(), $arSearchSource);
+        $resSourceIB = \CIBlock::GetList(array(), $arSearchSource);
         $arSourceFields = $resSourceIB->GetNext();
         if (!$arSourceFields['ID'])
             throw new Exception("Не нашёл инфоблока для копирования [{$arSearchSource['ID']}");
         // Находим новый инфоблок, если есть
-        $resTargetIB = CIBlock::GetList(array(), $arSearchTarget);
+        $resTargetIB = \CIBlock::GetList(array(), $arSearchTarget);
         $arTargetFields = $resTargetIB->GetNext();
         if ($arTargetFields['ID'])
             return $arTargetFields['ID'];
@@ -50,17 +50,17 @@ class Wizard
             if ($k{0} == '~') unset($arNewFields[$k]);
         }
         // Копируем инфоблок
-        $ib = new CIBlock();
+        $ib = new \CIBlock();
         $new_iblock_id = $ib->Add($arNewFields);
         if (!$new_iblock_id)
-            throw new Exception("Не удалось создать инфоблок. Причина: " . $ib->LAST_ERROR);
+            throw new \Exception("Не удалось создать инфоблок. Причина: " . $ib->LAST_ERROR);
         // Работаем со свойствами //
-        $ibp = new CIBlockProperty;
-        $properties = CIBlockProperty::GetList(Array("sort" => "asc", "name" => "asc"), Array("ACTIVE" => "Y", "IBLOCK_ID" => $arSourceFields['IBLOCK_ID']));
+        $ibp = new \CIBlockProperty;
+        $properties = \CIBlockProperty::GetList(Array("sort" => "asc", "name" => "asc"), Array("ACTIVE" => "Y", "IBLOCK_ID" => $arSourceFields['IBLOCK_ID']));
         while ($prop_fields = $properties->GetNext()) {
             //// Для списков - досчитываем данные по списку /////
             if ($prop_fields["PROPERTY_TYPE"] == "L") {
-                $property_enums = CIBlockPropertyEnum::GetList(Array("DEF" => "DESC", "SORT" => "ASC"), Array("IBLOCK_ID" => $arSourceFields['IBLOCK_ID'], "CODE" => $prop_fields["CODE"]));
+                $property_enums = \CIBlockPropertyEnum::GetList(Array("DEF" => "DESC", "SORT" => "ASC"), Array("IBLOCK_ID" => $arSourceFields['IBLOCK_ID'], "CODE" => $prop_fields["CODE"]));
                 while ($enum_fields = $property_enums->GetNext()) {
                     $prop_fields["VALUES"][] = Array(
                         "VALUE" => $enum_fields["VALUE"],
@@ -79,7 +79,7 @@ class Wizard
             ///// Создаём на новом месте /////
             $PropID = $ibp->Add($prop_fields);
             if (intval($PropID) <= 0)
-                throw new Exception("Не удалось скопировать свойство {$prop_fields['CODE']} ");
+                throw new \Exception("Не удалось скопировать свойство {$prop_fields['CODE']} ");
         }
         // Возвращаем номер инфоблока
         return $new_iblock_id;
@@ -94,30 +94,19 @@ class Wizard
     static function сreateSectionIfNotExists($arFields)
     {
         if (!$arFields['CODE'])
-            throw new Exception("Запрошено создание секции, но не указан её код. Я не могу определить, существует она или нет.");
+            throw new \Exception("Запрошено создание секции, но не указан её код. Я не могу определить, существует она или нет.");
         if (!$arFields['IBLOCK_ID'])
-            throw new Exception("Запрошено создание секции, но не указан инфоблок. Куда писать-то?!");
+            throw new \Exception("Запрошено создание секции, но не указан инфоблок. Куда писать-то?!");
 
-        $arSection = CIBlockSection::GetList(null, array('IBLOCK_ID' => $arFields['IBLOCK_ID'], 'CODE' => $arFields['CODE']), null, array('ID'))->Fetch();
+        $arSection = \CIBlockSection::GetList(null, array('IBLOCK_ID' => $arFields['IBLOCK_ID'], 'CODE' => $arFields['CODE']), null, array('ID'))->Fetch();
         if (!$arSection['ID']) {
-            $rsSection = new CIBlockSection;
+            $rsSection = new \CIBlockSection;
             if ($id = $rsSection->Add($arFields))
                 return $id;
             return null; // @todo: throw exceptioin!
         }
         return $arSection["ID"];
     }
-
-
-
-
-
-
-
-
-
-    // @todo: разобрать всё, что ниже
-
 
     /**
      * Регистрирует в базе Битрикса сайт исходя из пришедших настроек
@@ -126,7 +115,7 @@ class Wizard
     static function createSite($arFields)
     {
         if (!is_array($arFields))
-            throw new Exception('createSite должен получить массив с данными!');
+            throw new \Exception('createSite должен получить массив с данными!');
 
         $arFieldsDefault = Array(
             "ACTIVE" => "Y",
@@ -142,7 +131,7 @@ class Wizard
         $arFields = array_merge($arFieldsDefault, $arFields);
 
         // проверь - может он уже есть!
-        $rsSites = CSite::GetList($by = "sort", $order = "desc", Array("ID" => $arFields['LID']));
+        $rsSites = \CSite::GetList($by = "sort", $order = "desc", Array("ID" => $arFields['LID']));
         $arSite = $rsSites->Fetch();
         if ($arSite['LID']) {
             echo "site already exists\n";
@@ -150,9 +139,9 @@ class Wizard
         } // already exists
 
         // Созадём
-        $obSite = new CSite;
+        $obSite = new \CSite;
         if (!$obSite->Add($arFields))
-            throw new Exception("\t\t Не удалось создать сайт: " . $obSite->LAST_ERROR . "\n");
+            throw new \Exception("\t\t Не удалось создать сайт: " . $obSite->LAST_ERROR . "\n");
 
         return true;
     }
@@ -174,10 +163,10 @@ class Wizard
             $arrFilter
         );
         $arSelect = array('ID');
-        $res = CIBlockElement::GetList(Array('SORT' => 'ASC'), $arFilter, false, false, $arSelect);
+        $res = \CIBlockElement::GetList(Array('SORT' => 'ASC'), $arFilter, false, false, $arSelect);
         $ob = $res->GetNext();
         if (!$id = $ob['ID']) {
-            $el = new CIBlockElement;
+            $el = new \CIBlockElement;
             if (!$id = $el->Add($arFields))
                 throw new Exception("Не смог создать элемент инфоблока с главным редактором:\n" . $el->LAST_ERROR . "\n");
         }
@@ -187,14 +176,14 @@ class Wizard
 
     static function createIBlockIfNotExists($arSearch, $arFields)
     {
-        $res = CIBlock::GetList(array(), $arSearch, true);
+        $res = \CIBlock::GetList(array(), $arSearch, true);
         if ($ar_res = $res->Fetch())
             return $ar_res['ID'];
 
-        $ib = new CIBlock();
+        $ib = new \CIBlock();
         $new_iblock_id = $ib->Add($arFields);
         if (intval($new_iblock_id) <= 0)
-            throw new Exception("Не удалось создать инфоблок. Причина: " . $ib->LAST_ERROR);
+            throw new \Exception("Не удалось создать инфоблок. Причина: " . $ib->LAST_ERROR);
 
         return $new_iblock_id;
     }
@@ -210,15 +199,15 @@ class Wizard
     static function createPropertyIfNotExists($iblock_id, $arFields)
     {
         if (!is_array($arFields) && $arFields)
-            throw new Exception("Массив с описанием создаваемого свойства пуст!");
+            throw new \Exception("Массив с описанием создаваемого свойства пуст!");
 
         if (!$arFields['CODE'])
-            throw new Exception("Не задан символьный код свойства!");
+            throw new \Exception("Не задан символьный код свойства!");
 
         if (!$iblock_id)
-            throw new Exception("Не задан номер инфоблока!");
+            throw new \Exception("Не задан номер инфоблока!");
 
-        $properties = CIBlockProperty::GetList(
+        $properties = \CIBlockProperty::GetList(
             array("sort" => "asc", "name" => "asc"),
             array(
                 "IBLOCK_ID" => $iblock_id,
@@ -229,7 +218,7 @@ class Wizard
         if (!$prop_fields['ID']) {
             $arFields["IBLOCK_ID"] = $iblock_id;
 
-            $ibp = new CIBlockProperty;
+            $ibp = new \CIBlockProperty;
             if (!$PropID = $ibp->Add($arFields)) {
                 throw new Exception("Что-то пошло не так при создании свойтсва: " . $ibp->LAST_ERROR);
             }
@@ -242,12 +231,12 @@ class Wizard
     static function createUserFieldIfNotExists($arSearch, $arFields)
     {
         if (!($arSearch['ENTITY_ID'] && $arFields['ENTITY_ID']))
-            throw new Exception("В поиске или в полях не указана сущность, к которой привязано поле");
+            throw new \Exception("В поиске или в полях не указана сущность, к которой привязано поле");
         if (!($arSearch['FIELD_NAME'] && $arFields['FIELD_NAME']))
-            throw new Exception("В поиске или в полях не указано название пользовательского поля");
+            throw new \Exception("В поиске или в полях не указано название пользовательского поля");
 
         // Находим, если это возможно, пользовательское поле
-        $rsEntity = CUserTypeEntity::GetList(array(), $arSearch);
+        $rsEntity = \CUserTypeEntity::GetList(array(), $arSearch);
         $arRes = $rsEntity->Fetch();
         if ($arRes['ID'])
             return $arRes['ID'];
@@ -277,9 +266,9 @@ class Wizard
                 'DEFAULT_VALUE' => '',
             )
         ), $arFields);
-        $rsUF = new CUserTypeEntity();
+        $rsUF = new \CUserTypeEntity();
         if (!$id = $rsUF->Add($arField))
-            throw new Exception("Не получилось создать пользовательское свойство: " . $rsUF->LAST_ERROR);
+            throw new \Exception("Не получилось создать пользовательское свойство: " . $rsUF->LAST_ERROR);
         return $id;
     }
 
@@ -294,8 +283,8 @@ class Wizard
      */
     static function copyIBlockElement($id, $arNewFields)
     {
-        CModule::IncludeModule('iblock');
-        $resource = CIBlockElement::GetByID($id);
+        \CModule::IncludeModule('iblock');
+        $resource = \CIBlockElement::GetByID($id);
         if ($ob = $resource->GetNextElement()) {
             // Читаем данные
             $arFields = $ob->GetFields();
@@ -312,9 +301,9 @@ class Wizard
                     if ($property['MULTIPLE'] == 'Y') {
                         if (is_array($property['VALUE'])) {
                             foreach ($property['VALUE'] as $key => $arElEnum)
-                                $arFieldsCopy['PROPERTY_VALUES'][$property['CODE']][$key] = CFile::CopyFile($arElEnum);
+                                $arFieldsCopy['PROPERTY_VALUES'][$property['CODE']][$key] = \CFile::CopyFile($arElEnum);
                         }
-                    } else $arFieldsCopy['PROPERTY_VALUES'][$property['CODE']] = CFile::CopyFile($property['VALUE']);
+                    } else $arFieldsCopy['PROPERTY_VALUES'][$property['CODE']] = \CFile::CopyFile($property['VALUE']);
                 } elseif ($property['PROPERTY_TYPE'] == 'L') {
                     if ($property['MULTIPLE'] == 'Y') {
                         $arFieldsCopy['PROPERTY_VALUES'][$property['CODE']] = array();
@@ -349,11 +338,11 @@ class Wizard
             foreach ($arFieldsCopy['PROPERTY_VALUES'] as $k => $v)
                 $arSearchFields['PROPERTY_' . $k] = $v;
 
-            $res = CIBlockElement::GetList(Array('SORT' => 'ASC'), $arSearchFields, false, false, array('ID'));
+            $res = \CIBlockElement::GetList(Array('SORT' => 'ASC'), $arSearchFields, false, false, array('ID'));
             $ob = $res->GetNext();
             if ($ob['ID']) return $ob['ID'];
 
-            $el = new CIBlockElement();
+            $el = new \CIBlockElement();
             return $el->Add($arFieldsCopy);
         }
         return null;
@@ -366,17 +355,17 @@ class Wizard
     static function massUpdateSection($arSearch, $arFields)
     {
         if (!is_array($arSearch) || !is_array($arFields))
-            throw new Exception("Передаваемые параметры должны быть массивами");
+            throw new \Exception("Передаваемые параметры должны быть массивами");
         if (!$arSearch['IBLOCK_ID'])
-            throw new Exception("Не указан номер инфоблока секции");
+            throw new \Exception("Не указан номер инфоблока секции");
 
-        $res = CIBlockSection::GetList(Array('SORT' => 'ASC'), $arSearch);
+        $res = \CIBlockSection::GetList(Array('SORT' => 'ASC'), $arSearch);
         $arSection = $res->GetNext();
         if (!$arSection['ID'])
             throw new Exception("Не найдена секция");
 
         $arFields['IBLOCK_ID'] = $arSearch['IBLOCK_ID'];
-        $objSection = new CIBlockSection;
+        $objSection = new \CIBlockSection;
         $objSection->Update($arSection['ID'], $arFields);
 
         return true;
@@ -391,7 +380,7 @@ class Wizard
      * Взято из комментариев со страницы http://php.net/manual/en/function.array-merge-recursive.php
      *
      * Больше подходит для Битрикса, нежели стандартный array_merge_recursive.
-     * Применяется при мердже массивов, описывающих элемент, в том виде, как это хотят CIBlockElement:Add() и подобных
+     * Применяется при мердже массивов, описывающих элемент, в том виде, как это хотят \CIBlockElement:Add() и подобных
      */
     static function _array_merge_recursive_distinct ( $array1, $array2 )
     {

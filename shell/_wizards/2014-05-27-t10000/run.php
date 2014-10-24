@@ -9,5 +9,5 @@ define("NOT_CHECK_PERMISSIONS", true);
 // Подключаем Битрикс
 require $_SERVER["DOCUMENT_ROOT"].'/bitrix/modules/main/include/prolog_before.php';
 
-CModule::IncludeModule('maycat.consolejedi');
-\Bitrix\Maycat\Consolejedi\Consoleapp::checkIfUserIsAdequateOrDie('Вы точно хотите запустить визард?','Y');
+\CModule::IncludeModule('maycat.consolejedi');
+\Maycat\Consolejedi\Consoleapp::checkIfUserIsAdequateOrDie('Вы точно хотите запустить визард?','Y');
