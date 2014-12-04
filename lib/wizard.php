@@ -1,5 +1,5 @@
 <?
-namespace \Maycat\Consolejedi;
+namespace Maycat\Consolejedi;
 
 \CModule::IncludeModule('iblock');
 /**
